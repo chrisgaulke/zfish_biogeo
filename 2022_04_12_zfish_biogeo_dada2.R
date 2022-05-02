@@ -186,59 +186,62 @@ sort(1-(filter.out[,2]/filter.out[,1]))
 #let's keep this in mind moving forward
 
 # # ANALYSIS: ERROR ---------------------------------------------------------
-#
-# errF <- learnErrors(filtFs, multithread=TRUE)
-# errR <- learnErrors(filtRs, multithread=TRUE)
-# plotErrors(errF, nominalQ=TRUE)
-#
-# dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
-# dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
-#
-#
+
+errF <- learnErrors(filtFs, multithread=TRUE)
+errR <- learnErrors(filtRs, multithread=TRUE)
+plotErrors(errF, nominalQ=TRUE)
+
+dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
+dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
+
+
 # # ANALYSIS: MERGE AND FILTER -----------------------------------------------
-# mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
-#
-# seqtab <- makeSequenceTable(mergers)
-# dim(seqtab)
-#
-# seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus",
-#                                     multithread=TRUE, verbose=TRUE)
-# dim(seqtab.nochim)
-#
-# #how much data was wrapped up in chimeras
-# sum(seqtab.nochim)/sum(seqtab)
-#
-# write.table(seqtab.nochim,
-#             file = "data/dada2/seqtab_nochim.txt",
-#             quote = FALSE,
-#             sep = "\t",
-#             )
-#
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+
+seqtab <- makeSequenceTable(mergers)
+dim(seqtab)
+
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus",
+                                    multithread=TRUE, verbose=TRUE)
+dim(seqtab.nochim)
+
+#how much data was wrapped up in chimeras
+sum(seqtab.nochim)/sum(seqtab)
+
+#good to have full path
+dir.create("/Users/cgaulke/Documents/research/zfish_biogeography/data/dada2/")
+
+write.table(seqtab.nochim,
+            file = "../../data/dada2/seqtab_nochim.txt",
+            quote = FALSE,
+            sep = "\t"
+            )
+
 # # ANALYSIS: TRACK READS ---------------------------------------------------
-#
-# getN <- function(x) sum(getUniques(x))
-# track <- cbind(filter.out, sapply(dadaFs, getN),
-#                sapply(dadaRs, getN),
-#                sapply(mergers, getN),
-#                rowSums(seqtab.nochim))
-# colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
-# rownames(track) <- sample.names
-# head(track)
-#
-#
+
+getN <- function(x) sum(getUniques(x))
+track <- cbind(filter.out, sapply(dadaFs, getN),
+               sapply(dadaRs, getN),
+               sapply(mergers, getN),
+               rowSums(seqtab.nochim))
+colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+rownames(track) <- sample.names
+head(track)
+
+
 # # ANALYSIS: ADD TAX -------------------------------------------------------
-#
-# #***Here is where you will need to go and download the silva databases.
-# #***Be sure to get the right ones (the names are the same as the ones below)
-# #***These files can be downloaded here:https://zenodo.org/record/4587955#.YSlzKC1h1hA
-#
-#
-# taxa <- assignTaxonomy(seqtab.nochim,
-#           "/Users/cgaulke/unsynced_projects/db/silva_dada2/silva_nr99_v138.1_train_set.fa",
-#           multithread=TRUE)
-#
-# taxa <- addSpecies(taxa, "/Users/cgaulke/unsynced_projects/db/silva_dada2/silva_species_assignment_v138.1.fa")
-#
-# taxa.print <- taxa
-# rownames(taxa.print) <- NULL
-# head(taxa.print)
+
+#***Here is where you will need to go and download the silva databases.
+#***Be sure to get the right ones (the names are the same as the ones below)
+#***These files can be downloaded here:https://zenodo.org/record/4587955#.YSlzKC1h1hA
+
+
+taxa <- assignTaxonomy(seqtab.nochim,
+          "/Users/cgaulke/unsynced_projects/db/silva_dada2/silva_nr99_v138.1_train_set.fa",
+          multithread=TRUE)
+
+taxa <- addSpecies(taxa, "/Users/cgaulke/unsynced_projects/db/silva_dada2/silva_species_assignment_v138.1.fa")
+
+taxa.print <- taxa
+rownames(taxa.print) <- NULL
+head(taxa.print)
